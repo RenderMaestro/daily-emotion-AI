@@ -1,4 +1,8 @@
+//To minimize a new instance of client in db 
+
 import { PrismaClient } from "@prisma/client"
+
+
 
 const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined
