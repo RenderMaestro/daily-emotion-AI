@@ -21,7 +21,24 @@ model User {
 
   clerkId String         @unique
   email   String         @unique
+  account Account?
   entries JournalEntry[]
+  analysis  Analysis[]
+}
+
+model Account {
+  id               String @id @default(uuid())
+  userId           String
+  user             User   @relation(fields: [userId], references: [id])
+  // stripeCustomerId String @unique
+
+  @@unique([userId])
+}
+
+enum JOURNAL_ENTRY_STATUS {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 model JournalEntry {
@@ -32,6 +49,7 @@ model JournalEntry {
   userId  String
   user    User   @relation(fields: [userId], references: [id])
   content String @db.Text
+  status  JOURNAL_ENTRY_STATUS @default(DRAFT)
 
   analysis Analysis?
 
@@ -44,12 +62,19 @@ model Analysis {
   updatedAt DateTime @updatedAt
 
   entryId String
-  entry   JournalEntry @relation(fields: [entryId], references: [id])
+  entry   JournalEntry @relation(fields: [entryId], references: [id], onDelete:Cascade)
+
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   mood     String
   summary  String  @db.Text
   color    String
   negative Boolean
+  subject String
+   sentimentScore Float
 
   @@unique([entryId])
+  @@index([userId])
 }

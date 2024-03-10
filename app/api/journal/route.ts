@@ -1,18 +1,34 @@
-import { getUserByClerkID } from "@/utils/auth"
-import { prisma } from "@/utils/db"
-import { revalidatePath } from "next/cache"
-import { NextResponse } from "next/server"
+import { update } from '@/utils/actions'
+import { getUserFromClerkID } from '@/utils/auth'
+import { prisma } from '@/utils/db'
+import { NextResponse } from 'next/server'
 
-export const POST = async () => {
-    const user = await getUserByClerkID()
+export const POST = async (request: Request) => {
+    const data = await request.json()
+    const user = await getUserFromClerkID()
     const entry = await prisma.journalEntry.create({
         data: {
-            userId: user.id,
-            content: 'Write about your day!'
-        }
+            content: data.content,
+            user: {
+                connect: {
+                    id: user.id,
+                },
+            },
+            analysis: {
+                create: {
+                    mood: 'Neutral',
+                    subject: 'None',
+                    negative: false,
+                    summary: 'None',
+                    sentimentScore: 0,
+                    color: '#0101fe',
+                    userId: user.id,
+                },
+            },
+        },
     })
 
-    revalidatePath("/journal")
+    update(['/journal'])
 
     return NextResponse.json({ data: entry })
 }
